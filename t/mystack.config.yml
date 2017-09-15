@@ -1,0 +1,16 @@
+StackName: MyStack
+
+TemplateBody:
+  # You can either define the whole template body inline or you can include
+  # a reference to an external template file. TemplateBody has to be a string,
+  # so Fn::Stringify helps with that.
+  Fn::Stringify: !Include mystack.template.yml
+
+Parameters:
+  - ParameterKey: BucketName
+    ParameterValue: MyBucket
+
+Capabilities: [CAPABILITY_IAM]
+
+Tags:
+  - { Key: Environment, Value: production }
