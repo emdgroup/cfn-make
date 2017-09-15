@@ -1,6 +1,6 @@
 # cfn-make
 
-Makefile for CloudFormation stack deployments.
+Minimalistic Makefile for CloudFormation stack deployments.
 
 ## Motivation
 
@@ -12,11 +12,13 @@ Makefile for CloudFormation stack deployments.
 Parameters:
   BucketName:
     Type: String
+
 Resources:
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BucketName
+
 Outputs:
   Arn: { Value: !GetAtt Bucket.Arn }
 ```
@@ -29,7 +31,7 @@ StackName: MyStack
 TemplateBody:
   # You can either define the whole template body inline or you can include
   # a reference to an external template file. TemplateBody has to be a string,
-  # so Fn::Stringify helps with that.
+  # Fn::Stringify takes care of that.
   Fn::Stringify: !Include mystack.template.yml
 
 Parameters:
@@ -39,7 +41,6 @@ Capabilities: [CAPABILITY_IAM]
 
 Tags:
   - { Key: Environment, Value: production }
-
 ```
 
 ```bash
@@ -65,12 +66,17 @@ make stage  # creates a change set and displays changes made to the stack
 # +--------+------------+--------------+---------------------------+---------------------------+-------------------+
 
 make update # if you are happy with the changes, execute the change set
-
 ```
 
-## Customization
+## Build Stages
 
-All build steps come with pre- and post-hooks. These hooks need to be defined in a separate `Makefile` that is located in the same directory as the `CONFIG` file. If the `CONFIG` file is located in the root directory of the project, you should create a new makefile such as `hooks.makefile`. The environmental variable `$ARTIFACT` holds the location of the build artifact. If a hook fails so does the whole pipeline.
+Build stages have dependencies as defined in the following graph. Note that the `update` stage does not depend on `stage`. The `update` stage will fail if the stack has not been staged. If you are certain that you want to run `stage` and `update` in one run (without reviewing the change set for potential surprises) you can run `make stage update`.
+
+![Graph](graph.svg)
+
+## Custom Hooks
+
+All build steps come with pre- and post-hooks. These hooks need to be defined in a separate `Makefile` that is located in the same directory as the `$CONFIG` file. If the `$CONFIG` file is located in the root directory of the project, you should create a new makefile such as `hooks.makefile`. The environmental variable `$ARTIFACT` holds the location of the build artifact. If a hook fails so does the whole pipeline.
 
 A simple post-build hook could for example replace the `BucketName` parameter value with an environmental variable. The corresponding Makefile would look something like this:
 
@@ -88,6 +94,3 @@ BUCKET_NAME=mynewbucket make build
 running post-build hook
 sed -i.bak -e "s/MyBucket/$$BUCKET_NAME/" .build/mystack.config.yml.json
 ```
-
-
-![Graph](graph.svg)
