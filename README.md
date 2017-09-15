@@ -78,7 +78,7 @@ A simple post-build hook could for example replace the `BucketName` parameter va
 # hooks.makefile
 
 post-build:
-  sed -i.bak -e "s/MyBucket/$BUCKET_NAME/" $(ARTIFACT)
+  sed -i.bak -e "s/MyBucket/$$BUCKET_NAME/" $(ARTIFACT)
 ```
 
 Running the `build` target will indicate that a `post-build` hook was found and will execute it:
