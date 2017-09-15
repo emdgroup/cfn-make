@@ -1,0 +1,14 @@
+digraph G {
+
+  node [fontname = "sans-serif"];
+  edge [fontname = "sans-serif"];
+  init -> build
+  test -> stage
+  stage -> update [style=dashed]
+  test -> create
+  build -> test
+  init -> update
+
+  { rank = same; create; update }
+
+}
