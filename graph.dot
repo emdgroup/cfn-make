@@ -1,5 +1,6 @@
 digraph G {
-
+  rankdir="LR";
+  bgcolor=transparent;
   node [fontname = "sans-serif"];
   edge [fontname = "sans-serif"];
   init -> build
