@@ -35,10 +35,13 @@ ifndef CONFIG
 endif
 	@$(call run-hook,post-init)
 
+test-inline = jq -r '.TemplateBody' $(ARTIFACT) > $(ARTIFACT).template && $(CLI) validate-template --template-body file://$(ARTIFACT).template > /dev/null
+
+test-url = jq -r '.TemplateURL' $(ARTIFACT) | xargs $(CLI) validate-template --template-url > /dev/null
+
 test: build
 	@$(call run-hook,pre-test)
-	@jq -r '.TemplateBody' $(ARTIFACT) > .build/$(CONFIG).template
-	@$(CLI) validate-template --template-body file://.build/$(CONFIG).template > /dev/null
+	@jq -e '.TemplateBody' $(ARTIFACT) > /dev/null; if [ "$$?" -eq "0" ]; then $(test-inline); else $(test-url); fi
 	@$(call run-hook,post-test)
 
 build: init
