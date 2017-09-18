@@ -74,3 +74,9 @@ update: init
 	@$(call run-hook,post-update)
 	@$(call run-hook,post-create-or-update)
 	@$(call outputs)
+
+clean:
+	# TODO:
+	# clean orphaned change sets
+	# clean .build folder
+	# hooks
