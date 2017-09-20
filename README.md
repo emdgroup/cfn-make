@@ -70,7 +70,9 @@ make update # if you are happy with the changes, execute the change set
 
 ## Build Stages
 
+<p align="center">
 ![Graph](graph.svg)
+</p>
 
 * **init** Ensures that all required variables are set and all dependencies are installed.
 * **build** Compile the configuration file with `cfn-include` and write the output to a build folder.
