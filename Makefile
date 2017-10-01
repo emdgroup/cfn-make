@@ -23,8 +23,8 @@ check-dependencies:
 	@$(call check-dependency,jq)
 	@$(call check-dependency,shasum)
 	@$(call check-dependency,cfn-include)
-	@cfn-include --version | perl -pe 'use version; exit(version->parse("v$$_") < version->parse("v0.10.0"))' || \
-		(echo "requires cfn-include 0.10.0 or higher" && exit 1)
+	@cfn-include --version | perl -pe 'use version; exit(version->parse("v$$_") < version->parse("v0.10.3"))' || \
+		(echo "requires cfn-include 0.10.3 or higher" && exit 1)
 
 run-hook = $(MAKE) -n -f $(CONFIGDIR)/Makefile $(1) > /dev/null 2>&1; if [ "$$?" -eq "2" ]; then true; else echo "running $(1) hook" && ARTIFACT=$(ARTIFACT) $(MAKE) -f $(CONFIGDIR)/Makefile $(1); fi
 
@@ -62,7 +62,14 @@ create: test
 
 CHANGESET = $(shell shasum $(ARTIFACT) | awk '{print "cfnmake-"$$1}')
 
-stage: test
+diff: test
+	@$(call run-hook,pre-diff)
+	@$(CLI) get-template --stack-name $(STACKNAME) --query TemplateBody | cfn-include --yaml > .build/$(CONFIG).template.cur
+	@cfn-include --yaml .build/$(CONFIG).template > .build/$(CONFIG).template.new
+	@git diff --no-index .build/$(CONFIG).template.cur .build/$(CONFIG).template.new || true
+	@$(call run-hook,post-diff)
+
+stage: diff
 	@$(call run-hook,pre-stage)
 	@$(CLI) delete-change-set --stack-name $(STACKNAME) --change-set-name $(CHANGESET)
 	@$(CLI) create-change-set --cli-input-json file://$(ARTIFACT) --change-set-name $(CHANGESET) --change-set-type UPDATE --output text --query 'Id'

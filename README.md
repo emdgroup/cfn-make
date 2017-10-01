@@ -75,8 +75,9 @@ make update # if you are happy with the changes, execute the change set
 * **init** Ensures that all required variables are set and all dependencies are installed.
 * **build** Compile the configuration file with `cfn-include` and write the output to a build folder.
 * **test** Extract the CloudFormation template from the build folder and run `validate-template` on it.
+* **diff** Downloads the currently deployed template and generates a diff with the current version of the compiled template.
 * **create** Create the CloudFormation template and wait for its creation to finish. Prints stack outputs.
-* **stage** Create a change set of the deployed stack to the current template. Prints change set elements.
+* **stage** Create a change set of the deployed stack to the current template. Prints **diff** and change set elements.
 * **update** Execute the change set. Prints stack outputs.
 
 Build stages have dependencies as defined in the graph. Note that the `update` stage does not depend on `stage`. The `update` stage will fail if the stack has not been staged. If you are certain that you want to run `stage` and `update` in one run (without reviewing the change set for potential surprises) you can run `make stage update`. The name of change set is unique to the template configuration and body. A change to the template or configuration will also change the change set name. A call to `update` will therefore fail if changes have been made to the template but the change set has not been created yet.
