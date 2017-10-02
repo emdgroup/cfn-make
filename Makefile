@@ -65,7 +65,7 @@ CHANGESET = $(shell shasum $(ARTIFACT) | awk '{print "cfnmake-"$$1}')
 diff: test
 	@$(call run-hook,pre-diff)
 	@$(CLI) get-template --stack-name $(STACKNAME) --query TemplateBody | cfn-include --yaml > .build/$(CONFIG).template.cur
-	@cfn-include --yaml .build/$(CONFIG).template > .build/$(CONFIG).template.new
+	@cfn-include --yaml .build/$(CONFIG).json.template > .build/$(CONFIG).template.new
 	@git diff --no-index .build/$(CONFIG).template.cur .build/$(CONFIG).template.new || true
 	@$(call run-hook,post-diff)
 
