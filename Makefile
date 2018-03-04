@@ -20,8 +20,8 @@ check-dependencies:
 	@$(call check-dependency,jq)
 	@$(call check-dependency,shasum)
 	@$(call check-dependency,cfn-include)
-	@cfn-include --version | perl -pe 'use version; exit(version->parse("v$$_") < version->parse("v0.10.3"))' || \
-		(echo "requires cfn-include 0.10.3 or higher" && exit 1)
+	@cfn-include --version | perl -pe 'use version; exit(version->parse("v$$_") < version->parse("v0.11.0"))' || \
+		(echo "requires cfn-include 0.11.0 or higher" && exit 1)
 
 run-hook = $(MAKE) -n -f $(CONFIGDIR)/Makefile $(1) > /dev/null 2>&1; if [ "$$?" -eq "2" ]; then true; else echo "running $(1) hook" && ARTIFACT=$(ARTIFACT) $(MAKE) -f $(CONFIGDIR)/Makefile $(1); fi
 
@@ -44,7 +44,7 @@ test: build
 build: init clean
 	@$(call run-hook,pre-build)
 	@mkdir -p .build/$(CONFIG)
-	@cfn-include $(CONFIG) | jq 'del(.Metadata)' > $(ARTIFACT)
+	@cfn-include $(CONFIG) > $(ARTIFACT)
 	@$(call run-hook,post-build)
 
 outputs =	$(CLI) describe-stacks --stack-name $(STACKNAME) --query 'Stacks[].Outputs[]' --output table
