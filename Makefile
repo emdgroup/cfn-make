@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-.PHONY: check-dependencies check-git-status init test build create stage update
+.PHONY: check-dependencies init test build create stage update
 SHELL=/bin/bash -o pipefail
 
 CONFIGDIR = $(shell dirname $(CONFIG))
@@ -8,9 +8,6 @@ CONFIGDIR = $(shell dirname $(CONFIG))
 CLI = aws cloudformation
 
 -include *.makefile
-
-check-git-status:
-	$(if $(shell git fetch && git status -b --porcelain | grep -E "behind \d+"),$(error Please pull changes from upstream))
 
 ARTIFACT = .build/$(CONFIG).json
 
@@ -28,7 +25,7 @@ check-dependencies:
 
 run-hook = $(MAKE) -n -f $(CONFIGDIR)/Makefile $(1) > /dev/null 2>&1; if [ "$$?" -eq "2" ]; then true; else echo "running $(1) hook" && ARTIFACT=$(ARTIFACT) $(MAKE) -f $(CONFIGDIR)/Makefile $(1); fi
 
-init: check-git-status check-dependencies
+init: check-dependencies
 	@$(call run-hook,pre-init)
 ifndef CONFIG
 	$(error CONFIG needs to be set to a file or directory)
