@@ -59,11 +59,20 @@ create: test
 
 CHANGESET = $(shell shasum $(ARTIFACT) | awk '{print "cfnmake-"$$1}')
 
+download-template = @if jq -e '.TemplateURL' $(ARTIFACT) > /dev/null; then \
+		URL=$$(jq -j '.TemplateURL' $(ARTIFACT) | perl -pe 's!^.*?.amazonaws.com/([^/]+)!s3://$$1!g'); \
+		echo '{"Fn::Include":'$$URL'}' | cfn-include --yaml > .build/$(CONFIG).json.template; \
+	fi
+
 diff: test
 	@$(call run-hook,pre-diff)
 	@$(CLI) get-template --stack-name $(STACKNAME) --query TemplateBody | cfn-include --yaml > .build/$(CONFIG).template.cur
-	@cfn-include --yaml .build/$(CONFIG).json.template > .build/$(CONFIG).template.new
-	@git diff --no-index .build/$(CONFIG).template.cur .build/$(CONFIG).template.new || true
+	@$(CLI) describe-stacks --stack-name $(STACKNAME) --query 'sort_by(Stacks[0].Parameters || [], &ParameterKey)' | cfn-include --yaml > .build/$(CONFIG).params.cur
+	@jq '.Parameters | sort_by(.ParameterKey)' .build/$(CONFIG).json | cfn-include --yaml > .build/$(CONFIG).params.new
+	@git --no-pager diff --no-index .build/$(CONFIG).params.cur .build/$(CONFIG).params.new || true
+	$(call download-template)
+	@test -f .build/$(CONFIG).json.template && cfn-include --yaml .build/$(CONFIG).json.template > .build/$(CONFIG).template.new || echo Cannot download TemplateUrl, skipping diff
+	@test -f .build/$(CONFIG).json.template && git --no-pager diff --no-index .build/$(CONFIG).template.cur .build/$(CONFIG).template.new || true
 	@$(call run-hook,post-diff)
 
 stage: diff
