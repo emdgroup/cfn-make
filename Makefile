@@ -41,7 +41,7 @@ test: build
 	@jq -e '.TemplateBody' $(ARTIFACT) > /dev/null; if [ "$$?" -eq "0" ]; then $(test-inline); else $(test-url); fi
 	@$(call run-hook,post-test)
 
-build: init
+build: init clean
 	@$(call run-hook,pre-build)
 	@mkdir -p .build/$(CONFIG)
 	@cfn-include $(CONFIG) | jq 'del(.Metadata)' > $(ARTIFACT)
@@ -83,7 +83,6 @@ update: init
 	@$(call outputs)
 
 clean:
-	# TODO:
-	# clean orphaned change sets
-	# clean .build folder
-	# hooks
+	@$(call run-hook,pre-clean)
+	@rm -rf .build/$(CONFIG)
+	@$(call run-hook,post-clean)
