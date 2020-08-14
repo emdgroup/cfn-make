@@ -5,6 +5,9 @@ SHELL=/bin/bash -o pipefail
 
 CONFIGDIR = $(shell dirname $(CONFIG))
 
+export AWS_PAGER =
+export AWS_DEFAULT_OUTPUT = json
+
 CLI = aws cloudformation
 
 -include *.makefile
@@ -67,8 +70,8 @@ download-template = @if jq -e '.TemplateURL' $(ARTIFACT) > /dev/null; then \
 diff: test
 	@$(call run-hook,pre-diff)
 	@$(CLI) get-template --stack-name $(STACKNAME) --query TemplateBody | cfn-include --yaml > .build/$(CONFIG).template.cur
-	@$(CLI) describe-stacks --stack-name $(STACKNAME) --query 'sort_by(Stacks[0].Parameters || [], &ParameterKey)' | cfn-include --yaml > .build/$(CONFIG).params.cur
-	@jq '.Parameters | sort_by(.ParameterKey)' .build/$(CONFIG).json | cfn-include --yaml > .build/$(CONFIG).params.new
+	@$(CLI) describe-stacks --stack-name $(STACKNAME) --query 'Stacks[0]' | jq '.Parameters // [] | sort_by(.ParameterKey)' | cfn-include --yaml > .build/$(CONFIG).params.cur
+	@jq '.Parameters // [] | sort_by(.ParameterKey)' .build/$(CONFIG).json | cfn-include --yaml > .build/$(CONFIG).params.new
 	@git --no-pager diff --no-index .build/$(CONFIG).params.cur .build/$(CONFIG).params.new || true
 	$(call download-template)
 	@test -f .build/$(CONFIG).json.template && cfn-include --yaml .build/$(CONFIG).json.template > .build/$(CONFIG).template.new || echo Cannot download TemplateUrl, skipping diff
